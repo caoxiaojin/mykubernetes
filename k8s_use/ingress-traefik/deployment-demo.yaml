@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-demo
+  labels:
+    app: test-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-demo
+  template:
+    metadata:
+      labels:
+        app: test-demo
+    spec:
+      containers:
+        - name: test-demo-app
+          image: nginxlinux/myapp:v1
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "1000m"
+              memory: "1Gi"
+            limits:
+              cpu: "2000m"
+              memory: "2Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-demo-service
+spec:
+  selector:
+    app: test-demo
+  type: NodePort
+  ports:
+  - name: web
+    port: 80
+    protocol: TCP

@@ -1,0 +1,14 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: test-demo-service-ingress-route
+  namespace: default
+spec:
+  entryPoints:
+    - web
+  routes:
+  - match: Host(`test-demo.hungtcs.test`)
+    kind: Rule
+    services:
+    - name: test-demo-service
+      port: 80
