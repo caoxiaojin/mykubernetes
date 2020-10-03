@@ -1,0 +1,6 @@
+kubectl apply -f qa_hadoop_secret.yaml
+kubectl apply -f qa_hadoop_client_pv.yaml
+kubectl apply -f qa_hadoop_client_pvc.yaml
+kubectl apply -f qa_hadoop_ou_keytab_pv.yaml
+kubectl apply -f qa_hadoop_ou_keytab_pvc.yaml
+kubectl apply -f qa_hadoop_test_pod.yaml

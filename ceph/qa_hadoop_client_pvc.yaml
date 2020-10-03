@@ -1,0 +1,13 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: hadoop-client-pvc
+  namespace: qa
+spec:
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 10Gi
+  volumeName: qa-hadoop-client-pv
+  volumeMode: Filesystem

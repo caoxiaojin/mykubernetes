@@ -1,0 +1,20 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: qa-hadoop-ou-keytab-pv
+spec:
+  capacity:
+    storage: 10Gi
+  cephfs:
+    monitors:
+      - 'ceph0001:6789'
+      - 'ceph0002:6789'
+      - 'ceph0003:6789'
+    path: arch/hadoop-op/keytab/ou-keytab
+    user: hadoop-op
+    secretRef:
+      name: hadoop-op-keytab
+  accessModes:
+    - ReadOnlyMany
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem

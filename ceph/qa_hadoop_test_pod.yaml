@@ -1,0 +1,34 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: qa-pvc-test
+  namespace: qa
+spec:
+  containers:
+  - name: test-pod1
+    image: busybox:latest
+    command:
+      - "/bin/sh"
+    args:
+      - "-c"
+      - "ls  /mnt1/ && sleep 6000 &&  exit 0 || exit 1"
+    volumeMounts:
+      - name: pvc1
+        mountPath: "/mnt1"
+      - name: pvc2
+        mountPath: "/mnt2"
+    resources:
+      limits:
+        cpu: 50m
+        memory: 10Mi
+      requests:
+        cpu: 10m
+        memory: 10Mi
+  restartPolicy: "Never"
+  volumes:
+    - name: pvc1
+      persistentVolumeClaim:
+        claimName: hadoop-ou-keytab-pvc
+    - name: pvc2
+      persistentVolumeClaim:
+        claimName: hadoop-client-pvc
