@@ -58,3 +58,126 @@
     
     访问demo服务
     curl test-demo.hungtcs.test:31666
+    
+#### 通过nginx配置域名访问
+1）named配置域名
+[root@harbor01 stream.d]# cat /var/named/eniot.io.zone
+$ORIGIN eniot.io.
+$TTL 600        ; 10 minutes;
+@    IN SOA    dns.eniot.io.  dnsadmin.eniot.io. (
+                    2020050401  ; serial
+                    10800        ; refresh (3 hours)
+                    900        ; retry  (15 minutes)
+                    604800        ; expire (1 week)
+                    86400       ; minimum (1 day)
+                    )
+            NS    dns.eniot.io.
+$TTL 60 ; 1 minutes
+dns                A   192.168.37.100
+...........
+*.k8s-test              A   192.168.37.100
+
+2）修改traefix服务调为nodeport形式
+apiVersion: v1
+kind: Service
+metadata:
+  name: traefik
+
+spec:
+  type: NodePort
+  ports:
+    - protocol: TCP
+      name: web
+      port: 8000
+      nodePort: 30800
+    - protocol: TCP
+      name: admin
+      port: 8080
+      nodePort: 30080
+    - protocol: TCP
+      name: websecure
+      port: 4443
+      nodePort: 30443
+  selector:
+    app: traefik
+[root@master01 ~]# kubectl get svc
+NAME                TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)                                        AGE
+kubernetes          ClusterIP   10.96.0.1       <none>        443/TCP                                        14h
+test-demo-service   ClusterIP   10.100.148.81   <none>        80/TCP                                         3h33m
+traefik             NodePort    10.102.62.15    <none>        8000:30800/TCP,8080:30080/TCP,4443:30443/TCP   124m
+
+3）测试服务
+[root@master01 ~]# cat deployment_demo.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-demo
+  labels:
+    app: test-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-demo
+  template:
+    metadata:
+      labels:
+        app: test-demo
+    spec:
+      containers:
+        - name: test-demo-app
+          image: harbor-test.eniot.io/enos/myapp:v1
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "1000m"
+              memory: "1Gi"
+            limits:
+              cpu: "2000m"
+              memory: "2Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-demo-service
+spec:
+  selector:
+    app: test-demo
+  ports:
+  - name: web
+    port: 80
+    protocol: TCP
+[root@master01 ~]# cat deployment_demo_svc.yaml 
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: test-demo-service-ingress-route
+  namespace: default
+spec:
+  entryPoints:
+    - web
+  routes:
+  - match: Host(`myapp.k8s-test.eniot.io`)
+    kind: Rule
+    services:
+    - name: test-demo-service
+      port: 80
+假设：myapp.k8s-test.eniot.io 域名绑定在了k8s机器上面，可直接 curl myapp.k8s-test.eniot.io:30800进行访问
+   
+4) 配置nginx  实现通配服访问
+[root@harbor01 stream.d]# cat api.conf 
+upstream apaas-api {
+        server  master01.eniot.io:30800 max_fails=3 fail_timeout=60s weight=9;
+        server  node01.eniot.io:30800 max_fails=3 fail_timeout=60s weight=9;
+        server  node02.eniot.io:30800 max_fails=3 fail_timeout=60s weight=9;
+}
+
+server {
+      listen       8000;
+      proxy_connect_timeout 3s;
+      proxy_timeout 30s;
+      proxy_pass   apaas-api;
+}
+
+curl myapp.k8s-test.eniot.io:8000

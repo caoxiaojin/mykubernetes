@@ -1,0 +1,12 @@
+upstream apaas-api {
+        server  master01.eniot.io:30800 max_fails=3 fail_timeout=60s weight=9;
+        server  node01.eniot.io:30800 max_fails=3 fail_timeout=60s weight=9;
+        server  node02.eniot.io:30800 max_fails=3 fail_timeout=60s weight=9;
+}
+
+server {
+      listen       8000;
+      proxy_connect_timeout 3s;
+      proxy_timeout 30s;
+      proxy_pass   apaas-api;
+}

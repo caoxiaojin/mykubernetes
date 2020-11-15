@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: test-demo-app
-          image: nginxlinux/myapp:v1
+          image: harbor-test.eniot.io/enos/myapp:v1
           ports:
             - containerPort: 80
           resources:
@@ -34,7 +34,6 @@ metadata:
 spec:
   selector:
     app: test-demo
-  type: NodePort
   ports:
   - name: web
     port: 80

@@ -867,3 +867,57 @@
     master02   Ready    master   124m   v1.17.3
     master03   Ready    master   117m   v1.17.3
     node01     Ready    <none>   18s    v1.17.3    
+    
+    
+#### 单master配置
+
+    kubeadm config print init-defaults > kubeadm-config.yaml
+    [root@master01 k8s]# cat kubeadm-config.yaml
+    apiVersion: kubeadm.k8s.io/v1beta2
+    bootstrapTokens:
+    - groups:
+      - system:bootstrappers:kubeadm:default-node-token
+      token: abcdef.0123456789abcdef
+      ttl: 24h0m0s
+      usages:
+      - signing
+      - authentication
+    kind: InitConfiguration
+    localAPIEndpoint:
+      advertiseAddress: 192.168.37.11
+      bindPort: 6443
+    nodeRegistration:
+      criSocket: /var/run/dockershim.sock
+      name: master01
+      taints:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+    ---
+    apiServer:
+      timeoutForControlPlane: 4m0s
+    apiVersion: kubeadm.k8s.io/v1beta2
+    certificatesDir: /etc/kubernetes/pki
+    clusterName: kubernetes
+    controllerManager: {}
+    dns:
+      type: CoreDNS
+    etcd:
+      local:
+        dataDir: /var/lib/etcd
+    imageRepository: k8s.gcr.io
+    kind: ClusterConfiguration
+    kubernetesVersion: v1.17.3
+    networking:
+      dnsDomain: cluster.local
+      podSubnet: "10.244.0.0/16"
+      serviceSubnet: 10.96.0.0/12
+    scheduler: {}
+    ---
+    apiVersion: kubeproxy.config.k8s.io/v1alpha1
+    kind: KubeProxyConfiguration
+    featureGates:
+      SupportIPVSProxyMode: true
+    mode: ipvs    
+    
+    
+    [root@master01 k8s]# kubeadm init --config=kubeadm-config.yaml --upload-certs | tee kubeadm-init.log

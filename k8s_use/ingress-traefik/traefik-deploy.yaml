@@ -2,31 +2,31 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   namespace: default
-  name: ingress-traefik-ingress-controller
+  name: traefik-ingress-controller
 
 ---
 kind: Deployment
 apiVersion: apps/v1
 metadata:
   namespace: default
-  name: ingress-traefik
+  name: traefik
   labels:
-    app: ingress-traefik
+    app: traefik
 
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: ingress-traefik
+      app: traefik
   template:
     metadata:
       labels:
-        app: ingress-traefik
+        app: traefik
     spec:
-      serviceAccountName: ingress-traefik-ingress-controller
+      serviceAccountName: traefik-ingress-controller
       containers:
-        - name: ingress-traefik
-          image: ingress-traefik:v2.2
+        - name: traefik
+          image: harbor-test.eniot.io/enos/traefik:v2.3
           args:
             - --api.insecure
             - --accesslog
