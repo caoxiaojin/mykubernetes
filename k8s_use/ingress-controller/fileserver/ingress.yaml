@@ -1,0 +1,18 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  labels:
+    app: fileserver
+  name: fileserver
+  namespace: op
+spec:
+  rules:
+  - host: fileserver.apaas-test.eniot.io
+    http:
+      paths:
+      - backend:
+          serviceName: fileserver
+          servicePort: 80
+        path: /
